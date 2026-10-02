@@ -1,0 +1,3 @@
+v2x_msgs/Point2D destination
+---
+float64 remaining_distance

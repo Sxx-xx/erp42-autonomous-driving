@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>v2x_signal_simulator</name>
+  <version>0.0.1</version>
+  <description>Simulates V2X SPaT traffic-signal messages for testing signal handling without an OBU</description>
+  
+  <maintainer email="your@email.com">Your Name</maintainer>
+  <license>MIT</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <!-- 의존성 패키지들 -->
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>morai_msgs</depend>
+  <depend>ublox_msgs</depend>
+  <depend>vehicle_msgs</depend>
+  <depend>v2x_msgs</depend>
+</package>
