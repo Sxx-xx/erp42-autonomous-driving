@@ -1,0 +1,33 @@
+# catkin
+build/
+devel/
+install/
+build_isolated/
+devel_isolated/
+.catkin_tools/
+.catkin_workspace
+
+# python
+__pycache__/
+*.py[cod]
+venv/
+venv*/
+.venv/
+
+# model weights / large binaries
+*.pth
+*.pt
+*.onnx
+*.zip
+*.mp4
+*.mp3
+*.bag
+
+# SAE J2735 ASN.1 definitions (copyrighted, download separately)
+communication/v2x/SAE-J2735-2020/*.asn
+
+# logs / editor
+*.log
+.vscode/
+.idea/
+*~

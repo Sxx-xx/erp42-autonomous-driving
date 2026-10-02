@@ -1,0 +1,9 @@
+# External ROS packages this workspace depends on, pinned to the commits used on the vehicle.
+#   cd ~/catkin_ws/src && wstool init . && wstool merge <repo>/third_party/dependencies.rosinstall && wstool update
+# then apply the local modifications:  <repo>/third_party/apply_patches.sh ~/catkin_ws/src
+- git: {local-name: ublox, uri: 'https://github.com/KumarRobotics/ublox.git', version: 4aeed1d28cb481b915e5ebc1b07b9a39e0de6801}
+- git: {local-name: gps_umd, uri: 'https://github.com/swri-robotics/gps_umd.git', version: d218a50c7d988ef906f20d72100d9e66a11331cf}
+- git: {local-name: HesaiLidar_General_ROS, uri: 'https://github.com/HesaiTechnology/HesaiLidar_General_ROS.git', version: f574bb8a680e215a6ade9bf35e0898932b2a2234}
+- git: {local-name: morai_msgs, uri: 'https://github.com/morai-developergroup/morai_msgs.git', version: ab114d8e4080baebde48dcf0a23222e7633fc5a6}
+- git: {local-name: rtcm_msgs, uri: 'https://github.com/tilk/rtcm_msgs.git', version: 596ac4de2e8c22d2f06b53abf89725c90043203f}
+- git: {local-name: usb_cam, uri: 'https://github.com/ros-drivers/usb_cam.git', version: 0.3.6}

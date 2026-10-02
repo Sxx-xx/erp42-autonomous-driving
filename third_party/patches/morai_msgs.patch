@@ -1,0 +1,116 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cec921a..ac97720 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,10 +7,11 @@ find_package(catkin REQUIRED COMPONENTS
+   geometry_msgs
+   message_generation
+ )
+-
+  add_message_files(
+    DIRECTORY msg
+    FILES
++   BoundingBox.msg
++   BoundingBoxes.msg
+    CtrlCmd.msg
+    EgoVehicleStatus.msg
+    GPSMessage.msg
+@@ -52,6 +53,10 @@ find_package(catkin REQUIRED COMPONENTS
+    WaitForTick.msg
+    MapSpec.msg
+    MapSpecIndex.msg
++   LocalControl.msg
++   LocalTrack.msg
++   TrafficCustom.msg
++   Estop.msg
+  )
+ 
+  add_service_files(
+diff --git a/msg/BoundingBox.msg b/msg/BoundingBox.msg
+new file mode 100644
+index 0000000..556790c
+--- /dev/null
++++ b/msg/BoundingBox.msg
+@@ -0,0 +1,7 @@
++float64 probability
++int64 xmin
++int64 ymin
++int64 xmax
++int64 ymax
++int16 id
++string Class
+diff --git a/msg/BoundingBoxes.msg b/msg/BoundingBoxes.msg
+new file mode 100644
+index 0000000..3ec3fe8
+--- /dev/null
++++ b/msg/BoundingBoxes.msg
+@@ -0,0 +1,3 @@
++Header header
++Header image_header
++BoundingBox[] bounding_boxes
+diff --git a/msg/CtrlCmd.msg b/msg/CtrlCmd.msg
+index 3d498a7..98f4b52 100644
+--- a/msg/CtrlCmd.msg
++++ b/msg/CtrlCmd.msg
+@@ -1,8 +1,10 @@
++int32 seq
+ int32 longlCmdType
+ 
++int8 gear
+ float64 accel
+ float64 brake
+ float64 steering
+ 
+ float64 velocity
+-float64 acceleration
++float64 acceleration
+\ No newline at end of file
+diff --git a/msg/Estop.msg b/msg/Estop.msg
+new file mode 100644
+index 0000000..e38b3c6
+--- /dev/null
++++ b/msg/Estop.msg
+@@ -0,0 +1,2 @@
++float64 estop
++
+diff --git a/msg/LocalControl.msg b/msg/LocalControl.msg
+new file mode 100644
+index 0000000..382060c
+--- /dev/null
++++ b/msg/LocalControl.msg
+@@ -0,0 +1,11 @@
++int32 seq
++float64 gps_x
++float64 gps_y
++float64 gps_z
++float64 velocity
++float64 steer_angle
++int32 waypoint_size
++int32 cur_waypoint
++int32 angle_index
++float64 way_x
++float64 way_y
+diff --git a/msg/LocalTrack.msg b/msg/LocalTrack.msg
+new file mode 100644
+index 0000000..8182f81
+--- /dev/null
++++ b/msg/LocalTrack.msg
+@@ -0,0 +1,5 @@
++int32 seq
++float64 velocity
++float64 steer_angle
++float64 way_x
++float64 way_y
+diff --git a/msg/TrafficCustom.msg b/msg/TrafficCustom.msg
+new file mode 100644
+index 0000000..6a0c874
+--- /dev/null
++++ b/msg/TrafficCustom.msg
+@@ -0,0 +1,7 @@
++int32 seq
++int32 current_waypoint
++string traffic_sign
++int32 current_brake
++int32 accel 
++string mode
++

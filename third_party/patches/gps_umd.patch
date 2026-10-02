@@ -1,0 +1,81 @@
+diff --git a/gps_common/launch/fix_translator.launch b/gps_common/launch/fix_translator.launch
+index cb6b983..6b2d1bb 100644
+--- a/gps_common/launch/fix_translator.launch
++++ b/gps_common/launch/fix_translator.launch
+@@ -1,29 +1,7 @@
+ <launch>
+ 
+-<!--
+-    fix_translator translates to and from NatSatFix 
+-    and GPSFix messages.
+-
+-    If you want to translate from NavSatFix to GPSFix,
+-    you have to modify the first two remap lines.
+-   
+-    If you want to translate from GPSFix to NavSatFix,
+-    you have to uncomment and modify the last two remap 
+-    lines.
+-
+-    Only adjust topic names after "to=" in each remap line.
+--->
+-
+-  <node name="fix_translator" pkg="gps_common" type="fix_translator">
+-    <!-- Translate from NavSatFix to GPSFix //-->
+-      <remap from="/navsat_fix_in"  to="/fix"/>       
+-      <remap from="/gps_fix_out"    to="/gps_fix"/>
+-
+-    <!-- Translate from GPSFix to NavSatFix //-->
+-     <!--
+-       <remap from="/gps_fix_in"     to="/YOUR_GPSFIX_TOPIC"/>   
+-       <remap from="/navsat_fix_out" to="/YOUR_NAVSATFIX_TOPIC"/>   
+-     //-->
++  <node name="utm_odometry_node" pkg="gps_common" type="utm_odometry_node">  
++	<remap from="/navsat_fix_in" to="ublox/fix"/>	
+   </node>
+ 
+ </launch>
+diff --git a/gps_common/nodes/fix_translator b/gps_common/nodes/fix_translator
+index 43b7abd..357e832 100755
+--- a/gps_common/nodes/fix_translator
++++ b/gps_common/nodes/fix_translator
+@@ -7,7 +7,7 @@ from sensor_msgs.msg import NavSatFix
+ from gps_common.msg import GPSFix
+ import gps_common.gps_message_converter as converter
+ 
+-navsat_pub = rospy.Publisher('navsat_fix_out', NavSatFix, queue_size=10)
++#navsat_pub = rospy.Publisher('navsat_fix_out', NavSatFix, queue_size=10)
+ gps_pub = rospy.Publisher('gps_fix_out', GPSFix, queue_size=10)
+ 
+ 
+@@ -27,5 +27,5 @@ def gps_callback(gps_msg):
+ if __name__ == '__main__':
+     rospy.init_node('fix_translator', anonymous=True)
+     navsat_sub = rospy.Subscriber("navsat_fix_in", NavSatFix, navsat_callback)
+-    gps_sub = rospy.Subscriber("gps_fix_in", GPSFix, gps_callback)
++    #gps_sub = rospy.Subscriber("gps_fix_in", GPSFix, gps_callback)
+     rospy.spin()
+diff --git a/gps_common/src/utm_odometry_node.cpp b/gps_common/src/utm_odometry_node.cpp
+index 0120060..54c8574 100644
+--- a/gps_common/src/utm_odometry_node.cpp
++++ b/gps_common/src/utm_odometry_node.cpp
+@@ -83,6 +83,7 @@ void callback(const sensor_msgs::NavSatFixConstPtr& fix) {
+     odom.pose.covariance = covariance;
+ 
+     odom_pub.publish(odom);
++    ros::Rate loop_rate(20);
+   }
+ }
+ 
+@@ -96,9 +97,9 @@ int main (int argc, char **argv) {
+   priv_node.param<double>("rot_covariance", rot_cov, 99999.0);
+   priv_node.param<bool>("append_zone", append_zone, false);
+ 
+-  odom_pub = node.advertise<nav_msgs::Odometry>("odom", 10);
+-
+-  ros::Subscriber fix_sub = node.subscribe("fix", 10, callback);
++  odom_pub = node.advertise<nav_msgs::Odometry>("/odom/filtered", 10);
++  
++  ros::Subscriber fix_sub = node.subscribe("/ublox/fix", 10, callback);
+ 
+   ros::spin();
+ }

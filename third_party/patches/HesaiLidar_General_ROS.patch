@@ -1,0 +1,194 @@
+diff --git a/launch/hesai_lidar.launch b/launch/hesai_lidar.launch
+index 3b54571..6041885 100644
+--- a/launch/hesai_lidar.launch
++++ b/launch/hesai_lidar.launch
+@@ -5,15 +5,15 @@
+ 	<arg name="gps_port"  default="10110"/>
+ 	<arg name="start_angle"  default="0"/>
+ 	<!--“lidar_type” represents the model of the lidar-->
+-	<arg name="lidar_type" default=""/>
++	<arg name="lidar_type" default="PandarXT-16"/>
+ 	<!--"frame_id" represents the id of the point cloud data published to ROS-->
+-	<arg name="frame_id" default=""/>
++	<arg name="frame_id" default="PandarXT-16"/>
+ 	<arg name="pcldata_type" default="0"/>
+ 	<arg name="publish_type" default="points"/>
+ 	<arg name="timestamp_type" default=""/>
+ 	<arg name="data_type" default=""/>
+ 	<arg name="namespace" default="hesai"/>
+-	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/Pandar64.csv"/>
++	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/Pandar16.csv"/>
+ 	<arg name="multicast_ip"  default=""/>
+ 	<arg name="coordinate_correction_flag"  default="false"/>
+ 	<arg name="fixed_frame"  default=""/>
+@@ -37,4 +37,4 @@
+ 		<param name="fixed_frame"  type="string" value="$(arg fixed_frame)"/>
+ 		<param name="target_frame"  type="string" value="$(arg target_frame)"/>
+ 	</node>
+-</launch>
+\ No newline at end of file
++</launch>
+diff --git a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/log.h b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/log.h
+index e45b7eb..f45d7f3 100644
+--- a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/log.h
++++ b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/log.h
+@@ -17,8 +17,8 @@
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <thread>
+-#include <sys/time.h>
+-#include <sys/timeb.h>
++#include <chrono>
++#include <ctime>
+ 
+ class TranceFunc
+ {
+@@ -26,38 +26,62 @@ public:
+     TranceFunc(const char* file, const char* func){
+         m_cFile = file;
+         m_cFunc = func;
+-        struct tm *ptm;
+-        struct timeb stTimeb;
+-        ftime(&stTimeb);
+-        ptm = localtime(&stTimeb.time);
+-        printf("[T] %02d:%02d:%02d.%03d pid:%d tid:%10d ->[File:%s Function:%s ]\n", ptm->tm_hour, ptm->tm_min, ptm->tm_sec, stTimeb.millitm, getpid(), std::hash<std::thread::id>()(std::this_thread::get_id()), m_cFile, m_cFunc);
++        auto now = std::chrono::system_clock::now();
++        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
++        auto epoch = now_ms.time_since_epoch();
++        auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
++        long duration = value.count();
++        time_t rawtime = duration / 1000;
++        struct tm *ptm = localtime(&rawtime);
++        int milliseconds = duration % 1000;
++        printf("[T] %02d:%02d:%02d.%03d pid:%d tid:%10ld ->[File:%s Function:%s ]\n", 
++            ptm->tm_hour, ptm->tm_min, ptm->tm_sec, milliseconds, getpid(), 
++            (long int)std::hash<std::thread::id>()(std::this_thread::get_id()), m_cFile, m_cFunc);
+     }
+     ~TranceFunc(){
+-        struct tm *ptm;
+-        struct timeb stTimeb;
+-        ftime(&stTimeb);
+-        ptm = localtime(&stTimeb.time);
+-        printf("[T] %02d:%02d:%02d.%03d pid:%d tid:%10d <-[File:%s Function:%s ]\n", ptm->tm_hour, ptm->tm_min, ptm->tm_sec, stTimeb.millitm, getpid(), std::hash<std::thread::id>()(std::this_thread::get_id()), m_cFile, m_cFunc);
++        auto now = std::chrono::system_clock::now();
++        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
++        auto epoch = now_ms.time_since_epoch();
++        auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
++        long duration = value.count();
++        time_t rawtime = duration / 1000;
++        struct tm *ptm = localtime(&rawtime);
++        int milliseconds = duration % 1000;
++        printf("[T] %02d:%02d:%02d.%03d pid:%d tid:%10ld <-[File:%s Function:%s ]\n", 
++            ptm->tm_hour, ptm->tm_min, ptm->tm_sec, milliseconds, getpid(), 
++            (long int)std::hash<std::thread::id>()(std::this_thread::get_id()), m_cFile, m_cFunc);
+     }
+     const char* m_cFile;
+     const char* m_cFunc;
+ };
+ 
+ #define LOG_D(format,...) {\
+-    struct tm *ptm;\
+-    struct timeb stTimeb;\
+-    ftime(&stTimeb);\
+-    ptm = localtime(&stTimeb.time);\
+-    printf("[D] %02d:%02d:%02d.%03d pid:%d tid:%10d File:%s Function:%s Line:%d " format"\n", ptm->tm_hour, ptm->tm_min, ptm->tm_sec, stTimeb.millitm, getpid(), std::hash<std::thread::id>()(std::this_thread::get_id()), __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__);\
++    auto now = std::chrono::system_clock::now();\
++    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);\
++    auto epoch = now_ms.time_since_epoch();\
++    auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);\
++    long duration = value.count();\
++    time_t rawtime = duration / 1000;\
++    struct tm *ptm = localtime(&rawtime);\
++    int milliseconds = duration % 1000;\
++    printf("[D] %02d:%02d:%02d.%03d pid:%d tid:%10ld File:%s Function:%s Line:%d " format"\n", \
++        ptm->tm_hour, ptm->tm_min, ptm->tm_sec, milliseconds, getpid(), \
++        (long int)std::hash<std::thread::id>()(std::this_thread::get_id()), __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__);\
+ }
+ 
+ #define LOG_E(format,...) {\
+-    struct tm *ptm;\
+-    struct timeb stTimeb;\
+-    ftime(&stTimeb);\
+-    ptm = localtime(&stTimeb.time);\
+-    printf("[E] %02d:%02d:%02d.%03d pid:%d tid:%10d File:%s Function:%s Line:%d " format"\n", ptm->tm_hour, ptm->tm_min, ptm->tm_sec, stTimeb.millitm, getpid(), std::hash<std::thread::id>()(std::this_thread::get_id()), __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__);\
++    auto now = std::chrono::system_clock::now();\
++    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);\
++    auto epoch = now_ms.time_since_epoch();\
++    auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);\
++    long duration = value.count();\
++    time_t rawtime = duration / 1000;\
++    struct tm *ptm = localtime(&rawtime);\
++    int milliseconds = duration % 1000;\
++    printf("[E] %02d:%02d:%02d.%03d pid:%d tid:%10ld File:%s Function:%s Line:%d " format"\n", \
++        ptm->tm_hour, ptm->tm_min, ptm->tm_sec, milliseconds, getpid(), \
++        (long int)std::hash<std::thread::id>()(std::this_thread::get_id()), __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__);\
+ }
+ 
+ #define LOG_FUNC() TranceFunc tf( __FILE__, __FUNCTION__)
+-    
+\ No newline at end of file
++
+diff --git a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/pandarGeneral/point_types.h b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/pandarGeneral/point_types.h
+index 9ab070f..0e17e09 100644
+--- a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/pandarGeneral/point_types.h
++++ b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include/pandarGeneral/point_types.h
+@@ -18,21 +18,23 @@
+ #define INCLUDE_POINT_TYPES_H_
+ 
+ #include <pcl/point_types.h>
++#include <cstdint>  // std::uint16_t 사용을 위한 헤더 추가
+ 
+ struct PointXYZIT {
+   PCL_ADD_POINT4D   //添加pcl里xyz
+   float intensity;
+   double timestamp;
+-  uint16_t ring;                   ///< laser ring number
++  std::uint16_t ring;                   ///< laser ring number
+   EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // make sure our new allocators are aligned,确保定义新类型点云内存与SSE对齐
+ } EIGEN_ALIGN16;                   // 强制SSE填充以正确对齐内存
+ 
+ POINT_CLOUD_REGISTER_POINT_STRUCT(
+     PointXYZIT,
+     (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(
+-        double, timestamp, timestamp)(uint16_t, ring, ring))
++        double, timestamp, timestamp)(std::uint16_t, ring, ring))
+ 
+ typedef PointXYZIT PPoint;
+ typedef pcl::PointCloud<PPoint> PPointCloud;
+ 
+ #endif  // INCLUDE_POINT_TYPES_H_
++
+diff --git a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral.cc b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral.cc
+index e042bae..4e3458e 100644
+--- a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral.cc
++++ b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral.cc
+@@ -95,10 +95,11 @@ void PandarGeneral::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
+   }
+ }
+ 
+-bool PandarGeneral::GetCorrectionFileFlag(){
+-  if (internal_) {
+-    return internal_->GetCorrectionFileFlag();
+-  }
++bool PandarGeneral::GetCorrectionFileFlag() {
++    if (internal_) {
++        return internal_->GetCorrectionFileFlag();
++    }
++    return false;  // internal_이 nullptr인 경우 false 반환
+ }
+ 
+ void PandarGeneral::SetCorrectionFileFlag(bool flag){
+diff --git a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral_internal.h b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral_internal.h
+index be72336..826535e 100644
+--- a/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral_internal.h
++++ b/src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral_internal.h
+@@ -303,7 +303,8 @@ typedef struct PacketsBuffer_s {
+     }
+ 
+     if (m_iterPush == m_iterCalc) {
+-      printf("buffer don't have space!,%d\n", m_iterPush - m_buffers.begin());
++      printf("buffer don't have space!,%ld\n", m_iterPush - m_buffers.begin());
++
+       return 0;
+     }
+ 

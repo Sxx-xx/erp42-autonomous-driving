@@ -1,0 +1,9 @@
+# Python dependencies that are not provided by ROS Noetic / rosdep
+pyserial        # ERP42 serial bridge
+utm             # RTK logger (lat/lon -> UTM)
+asn1tools       # SAE J2735 SPaT decoding
+numpy
+opencv-python   # stop-line / lane / sign detection
+torch           # LaneNet, YOLOv5
+torchvision
+Pillow

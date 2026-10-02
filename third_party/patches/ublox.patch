@@ -1,0 +1,126 @@
+diff --git a/ublox_gps/config/zed_f9p.yaml b/ublox_gps/config/zed_f9p.yaml
+index 331de18..b7a22b1 100644
+--- a/ublox_gps/config/zed_f9p.yaml
++++ b/ublox_gps/config/zed_f9p.yaml
+@@ -1,5 +1,17 @@
+-device: /dev/ttyACM0
++device: /dev/ttyUSB1
+ frame_id: gps
++
+ uart1:
+-  baudrate: 38400
++  baudrate: 115200
++
+ config_on_startup: false
++tmode3: 0
++
++publish:
++  all: false
++  nav:
++    all: true
++    navpvt: true
++    relposned: true
++    poslih: true
++    posecef: true
+diff --git a/ublox_gps/include/ublox_gps/node.h b/ublox_gps/include/ublox_gps/node.h
+index 2bb0569..f6c6583 100644
+--- a/ublox_gps/include/ublox_gps/node.h
++++ b/ublox_gps/include/ublox_gps/node.h
+@@ -770,10 +770,13 @@ class UbloxFirmware7Plus : public UbloxFirmware {
+       // NavPVT publisher
+       static ros::Publisher publisher = nh->advertise<NavPVT>("navpvt",
+                                                               kROSQueueSize);
+-      publisher.publish(m);
++      //heading 설
++      ublox_msgs::NavPVT nav_pvt;
++      nav_pvt.heading = float(m.heading * 0.00001)-180;
++      publisher.publish(nav_pvt);
+     }
+ 
+-    //
++    //정
+     // NavSatFix message
+     //
+     static ros::Publisher fixPublisher =
+diff --git a/ublox_gps/launch/ublox_device.launch b/ublox_gps/launch/ublox_device.launch
+index d813e79..3c2747c 100644
+--- a/ublox_gps/launch/ublox_device.launch
++++ b/ublox_gps/launch/ublox_device.launch
+@@ -2,7 +2,7 @@
+ 
+ <launch>
+   <arg name="param_file_name"     doc="name of param file, e.g. rover" />
+-  <arg name="param_file_dir"      doc="directory to look for $(arg param_file_name).yaml"
++  <arg name="param_file_dir"      doc="directory to look for zed_f9p.yaml"
+                                   default="$(find ublox_gps)/config" />
+ 
+   <arg name="node_name"           doc="name of this node"
+@@ -12,12 +12,12 @@
+   <arg name="respawn_delay"       default="30" />
+   <arg name="clear_params"        default="true" />
+ 
+-  <node pkg="ublox_gps" type="ublox_gps" name="$(arg node_name)"
++  <node pkg="ublox_gps" type="ublox_gps" name="ublox"
+         output="$(arg output)"
+         clear_params="$(arg clear_params)"
+-        respawn="$(arg respawn)"
++        respawn="$(arg respawn)"  
+         respawn_delay="$(arg respawn_delay)">
+     <rosparam command="load"
+-              file="$(arg param_file_dir)/$(arg param_file_name).yaml" />
++              file="$(arg param_file_dir)/zed_f9p.yaml" />
+   </node>
+ </launch>
+diff --git a/ublox_gps/src/node.cpp b/ublox_gps/src/node.cpp
+index 61642b3..218348f 100644
+--- a/ublox_gps/src/node.cpp
++++ b/ublox_gps/src/node.cpp
+@@ -33,6 +33,8 @@
+ #include <sstream>
+ 
+ using namespace ublox_node;
++ublox_msgs::NavPVT nav_pvt_global;
++ublox_msgs::NavPVT7 nav_pvt_g7;
+ 
+ //! How long to wait during I/O reset [s]
+ constexpr static int kResetWait = 10;
+@@ -975,11 +977,12 @@ bool UbloxFirmware7::configureUblox() {
+ void UbloxFirmware7::subscribe() {
+   // Whether to publish Nav PVT messages to a ROS topic
+   nh->param("publish/nav/pvt", enabled["nav_pvt"], enabled["nav"]);
++  nav_pvt_g7.heading = nav_pvt_global.heading * 0.000001;
+   // Subscribe to Nav PVT (always does so since fix information is published
+   // from this)
+   gps.subscribe<ublox_msgs::NavPVT7>(boost::bind(
+-        &UbloxFirmware7Plus::callbackNavPvt, this, _1),
+-        kSubscribeRate);
++	&UbloxFirmware7Plus::callbackNavPvt, this, _1),
++	kSubscribeRate);
+ 
+   // Subscribe to Nav SVINFO
+   nh->param("publish/nav/svinfo", enabled["nav_svinfo"], enabled["nav"]);
+@@ -1208,9 +1211,11 @@ bool UbloxFirmware8::configureUblox() {
+ void UbloxFirmware8::subscribe() {
+   // Whether to publish Nav PVT messages
+   nh->param("publish/nav/pvt", enabled["nav_pvt"], enabled["nav"]);
++  nav_pvt_global.heading = nav_pvt_global.heading * 0.000001;
+   // Subscribe to Nav PVT
+-  gps.subscribe<ublox_msgs::NavPVT>(
+-    boost::bind(&UbloxFirmware7Plus::callbackNavPvt, this, _1), kSubscribeRate);
++ gps.subscribe<ublox_msgs::NavPVT>(boost::bind(
++	&UbloxFirmware7Plus::callbackNavPvt, this, _1), 
++	kSubscribeRate);
+ 
+   // Subscribe to Nav SAT messages
+   nh->param("publish/nav/sat", enabled["nav_sat"], enabled["nav"]);
+diff --git a/ublox_msgs/msg/NavPVT7.msg b/ublox_msgs/msg/NavPVT7.msg
+index b3b3795..aa0b1ab 100644
+--- a/ublox_msgs/msg/NavPVT7.msg
++++ b/ublox_msgs/msg/NavPVT7.msg
+@@ -85,4 +85,4 @@ uint32 headAcc          # Heading Accuracy Estimate (both motion & vehicle)
+                         # [deg / 1e-5]
+ 
+ uint16 pDOP             # Position DOP [1 / 0.01]
+-uint8[6] reserved1      # Reserved
+\ No newline at end of file
++uint8[6] reserved1      # Reserved
