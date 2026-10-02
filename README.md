@@ -111,6 +111,17 @@ stateDiagram-v2
 - **주차**: 주차 구간에서 LiDAR 플래그가 연속으로 비어 있음을 확인한 뒤 전진-후진 시퀀스 수행, 후진 중 정지선이 검출되면 정지 후 탈출
 - **배달**: 표지판 인식값을 고정 길이 윈도우(deque)로 디바운싱해 A 표지판을 확정하고, 일치하는 B 표지판 위치에서 정차 시퀀스 수행
 
+**미션별 플래너** — 통합 플래너 외에 미션 단위로 검증하던 버전도 함께 둡니다.
+
+| 스크립트 | 내용 |
+| --- | --- |
+| `erp42_planner_main.py` | 전 미션 통합 플래너 (2025 최종) |
+| `erp42_planner_bigob.py` | 대형 장애물 회피: 지정 구간에서 장애물 감지 시 조향 → GPS 추종 → 반대 조향의 3단계 시퀀스, 회피 방향은 장애물마다 교대 (`erp42_bigob.launch`) |
+| `erp42_planner_cits.py` | V2X 신호 대응 + 장애물 정지/회피 (waypoint별 교차로 ID · signal group 매핑) |
+| `erp42_planner_only_cits.py` | GPS 추종 + V2X 신호 대응만 분리한 버전 |
+| `erp42_planner_2024.py` | 2024 대회 버전 (GPS / Lane / Obstacle / U-Turn) |
+| `cits_test.py`, `cits_test_multi.py` | SPaT 메시지를 수동 발행하는 신호 대응 테스트용 노드 (단일 / 다중 교차로) |
+
 ### 3. LiDAR 장애물 인지 — `perception/adaptive_clustering` *(yzrobot/adaptive_clustering 수정)*
 - Voxel grid(0.125 m) 다운샘플링 → x/y/z 및 방위각 ROI 필터 → 거리 구간별 tolerance를 달리한 Euclidean clustering
 - 클러스터 중심을 `vehicle_msgs/Track`(`/track`)으로 발행해 RRT 플래너와 미션 플래너에 전달
@@ -158,7 +169,7 @@ V2X 디코딩 · 카메라 인지 · 측위 설정 모듈은 팀원과 함께 �
 
 ```
 ├── planning_control/
-│   ├── erp42_control_ob/      # 미션 플래너, Pure Pursuit/PID, ERP42 시리얼, 정지선/차선 인식
+│   ├── erp42_control_ob/      # 미션 플래너(통합 + 미션별), Pure Pursuit/PID, ERP42 시리얼, 정지선/차선 인식
 │   ├── erp42_track/           # 트랙 미션 컨트롤러
 │   └── ma_rrt_path_plan/      # RRT 회피 경로 (수정 fork)
 ├── perception/
