@@ -8,6 +8,8 @@
 RTK-GPS 경로 추종을 기본으로, LiDAR 장애물 회피 · V2X 신호 연동 · 주차 · 배달 · 차선/정지선 인식 미션을
 하나의 미션 플래너가 모드 전환으로 수행합니다. (팀 NAVIGATOR, 2025 시즌 최종 코드 기준)
 
+2025 대학생 창작 모빌리티 경진대회 자율주행 부문 출전, 같은 스택으로 OceanX 자율주행 레이싱 금상(2025.11)
+
 > ROS 1 (Noetic) based autonomous driving stack for the ERP42 platform: RTK-GPS waypoint following (pure pursuit + PID),
 > LiDAR clustering + RRT obstacle avoidance, SAE J2735 SPaT (V2X) traffic-signal handling, and camera-based
 > stop-line / lane / delivery-sign perception, orchestrated by a single mode-switching mission planner.
@@ -161,7 +163,10 @@ stateDiagram-v2
 - `ma_rrt_path_plan` 수정: 장애물 묶음 사이 중점을 목표로 하는 회피 경로 생성, 플래너 연동용 waypoint 토픽 추가
 - 회피 구간 트리거 → 대기 → RRT waypoint 추종 → GPS 복귀로 이어지는 플래너 연동
 
-V2X 디코딩 · 카메라 인지 · 측위 설정 모듈은 팀원과 함께 구성한 부분으로, 전체 시스템을 재현할 수 있도록 함께 포함했습니다.
+**카메라 인지**
+- 배달 표지판 인식 모델(`perception/delivery`): 6클래스 데이터셋 직접 촬영 · 라벨링, albumentations 증강, YOLOv5s 파인튜닝 (mAP@0.5 0.81)
+
+V2X 디코딩 · 정지선/차선 인식 · 측위 설정 모듈은 팀원과 함께 구성한 부분으로, 전체 시스템을 재현할 수 있도록 함께 포함했습니다.
 
 ---
 
