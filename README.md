@@ -164,7 +164,7 @@ stateDiagram-v2
 - 회피 구간 트리거 → 대기 → RRT waypoint 추종 → GPS 복귀로 이어지는 플래너 연동
 
 **카메라 인지**
-- 배달 표지판 인식 모델(`perception/delivery`): 6클래스 데이터셋 직접 촬영 · 라벨링, albumentations 증강, YOLOv5s 파인튜닝 (mAP@0.5 0.81)
+- 배달 표지판 인식 모델(`perception/delivery`): 6클래스 데이터셋 직접 촬영 · 라벨링, albumentations 증강, YOLOv5s 파인튜닝 (mAP@0.5 0.87)
 
 V2X 디코딩 · 정지선/차선 인식 · 측위 설정 모듈은 팀원과 함께 구성한 부분으로, 전체 시스템을 재현할 수 있도록 함께 포함했습니다.
 
